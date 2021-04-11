@@ -27,7 +27,7 @@ def getOrgs():
         """]
 
 
-def getCommentsForOrgAndPr(repo, pr):
+def getCommentsForRepo(repo, prs):
     return [["repo_name", "number", "body"], """
         SELECT repo_name, number, body
         FROM github_events
@@ -35,5 +35,5 @@ def getCommentsForOrgAndPr(repo, pr):
             AND event_type IN ('PullRequestEvent', 'PullRequestReviewCommentEvent', 'PullRequestReviewEvent') 
             AND action in ('opened', 'created') 
             AND review_state = 'none'
-            AND number = %s;
-    """ % (repo, pr)]
+            AND number in (%s);
+    """ % (repo, ','.join(prs))]

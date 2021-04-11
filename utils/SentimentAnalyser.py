@@ -1,6 +1,6 @@
 import nltk
 
-nltk.download('vader_lexicon')
+nltk.download('vader_lexicon', quiet=True)
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 
