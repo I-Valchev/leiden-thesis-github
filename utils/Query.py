@@ -3,7 +3,9 @@ def getPRsForOrg(org):
     return [["repo_name","number"], """
         SELECT repo_name, number
         FROM github_events
-        WHERE LOWER(SUBSTRING(repo_name, 1, POSITION(repo_name, '/'))) IN ('%s') AND event_type = 'PullRequestEvent' AND action = 'opened';
+        WHERE LOWER(SUBSTRING(repo_name, 1, POSITION(repo_name, '/'))) IN ('%s') 
+            AND event_type = 'PullRequestEvent' 
+            AND action = 'opened';
         """ % org]
 
 def getOrgs():
@@ -17,7 +19,8 @@ def getOrgs():
             uniqIf(actor_login, event_type = 'PullRequestReviewCommentEvent') AS review_authors,
             uniqIf(actor_login, event_type = 'PushEvent') AS push_authors
         FROM github_events
-        WHERE event_type IN ('PullRequestEvent', 'IssuesEvent', 'IssueCommentEvent', 'PullRequestReviewCommentEvent', 'PushEvent') AND (created_at BETWEEN '2020/01/01' AND '2020/12/31')
+        WHERE event_type IN ('PullRequestEvent', 'IssuesEvent', 'IssueCommentEvent', 'PullRequestReviewCommentEvent', 'PushEvent') 
+            AND (created_at BETWEEN '2020/01/01' AND '2020/12/31')
         GROUP BY org
         ORDER BY authors DESC
         LIMIT 50
@@ -25,5 +28,12 @@ def getOrgs():
 
 
 def getCommentsForOrgAndPr(repo, pr):
-    # @todo: Implement query for getting all comments for a repo and PR number.
-    return None
+    return [["repo_name", "number", "body"], """
+        SELECT repo_name, number, body
+        FROM github_events
+        WHERE repo_name = '%s' 
+            AND event_type IN ('PullRequestEvent', 'PullRequestReviewCommentEvent', 'PullRequestReviewEvent') 
+            AND action in ('opened', 'created') 
+            AND review_state = 'none'
+            AND number = %s;
+    """ % (repo, pr)]

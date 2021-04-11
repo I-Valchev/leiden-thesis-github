@@ -6,10 +6,16 @@ api = API()
 pull_requests = FileLoader.load('pull-requests.json')
 
 comments = []
+for i, pr in enumerate(pull_requests):
+    print(i)
+    # if i > 10:
+    #     break
 
-for pr in pull_requests:
+    # Omit the empty instances
+    if not pr['repo_name']:
+        continue
     [keys, query] = Query.getCommentsForOrgAndPr(pr['repo_name'], pr['number'])
-    comments = api.asArray(query, keys)
-    comments.append(comments)
+    prComments = api.asArray(query, keys)
+    comments += prComments
 
 FileLoader.save('comments.json', comments)
