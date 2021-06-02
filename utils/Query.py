@@ -1,7 +1,7 @@
 
 def getPRsForOrg(org):
-    return [["repo_name","number"], """
-        SELECT repo_name, number
+    return [["repo_name","number", "created_at"], """
+        SELECT repo_name, number, created_at
         FROM github_events
         WHERE LOWER(SUBSTRING(repo_name, 1, POSITION(repo_name, '/'))) IN ('%s') 
             AND event_type = 'PullRequestEvent' 
@@ -37,3 +37,4 @@ def getCommentsForRepo(repo, prs):
             AND review_state = 'none'
             AND number in (%s);
     """ % (repo, ','.join(prs))]
+
