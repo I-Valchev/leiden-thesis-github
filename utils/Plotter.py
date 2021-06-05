@@ -11,6 +11,7 @@ class Plotter:
         self.prsWithComments = self.prsDf.merge(commentsByPR, how='left', left_on=['repo_name', 'number'],
                                            right_on=['repo_name', 'number'])
 
+        self.percentiles = [0, 0.05, 0.25, 0.50, 0.75, 0.85, 0.90, 0.95, 0.98, 1]
 
     def mean(self):
         print("MEAN:")
@@ -87,11 +88,50 @@ class Plotter:
     def totalNegVsMerged(self):
         totalNegVsMerged = self.prsWithComments[['is_merged', 'meanNeg']].groupby('is_merged')['meanNeg'].mean()
 
-        print(totalNegVsMerged)
         plot = totalNegVsMerged.plot(title="Total mean neg. compared to merge status", kind='bar')
-
         for p in plot.patches:
             plot.annotate(str(p.get_height()), xy=(p.get_x(), p.get_height()))
 
         plot.set_ylabel('Mean neg. display of emotion')
+        plt.show(block=True)
+
+    def totalNegVsMergeTime(self):
+        data = self.prsWithComments.loc[
+            self.prsWithComments['merged_at'].notnull()
+            &
+            self.prsWithComments['meanNeg'].notnull()
+        ]
+
+        data['merge_time'] = data['merged_at'] - data['created_at']
+        data = data[['merge_time', 'meanNeg']]
+
+        plot = data.plot(title='Total neg. vs merge time', x='merge_time', y='meanNeg', style='o')
+        plt.show(block=True)
+
+        quantiles = data.quantile(self.percentiles).unstack().plot(title="Mean neg quantiles")
+        plt.show(block=True)
+
+
+    def meanNegDensityMergedPRs(self):
+        data = self.prsWithComments.loc[
+            self.prsWithComments['merged_at'].isnull()
+            &
+            self.prsWithComments['meanNeg'].notnull()
+        ]
+
+        data = data[['meanNeg']]
+
+        plot = data.plot.density(title='Mean neg. density for merged PRs')
+        plt.show(block=True)
+
+    def meanNegDensityUnmergedPRs(self):
+        data = self.prsWithComments.loc[
+            self.prsWithComments['merged_at'].notnull()
+            &
+            self.prsWithComments['meanNeg'].notnull()
+        ]
+
+        data = data[['meanNeg']]
+
+        plot = data.plot.density(title='Mean neg. density for unmerged PRs')
         plt.show(block=True)
