@@ -3,7 +3,8 @@ from utils.Plotter import Plotter
 import pandas as pd
 
 # orgs = FileLoader.load('orgs-community-size-2020.json')
-# prs = FileLoader.load('pull-requests.json')
+prs = FileLoader.load('pull-requests.json')
+prsMerged = FileLoader.load('pull-requests-merged.json')
 # c = FileLoader.load('comments.json')
 # cc = FileLoader.load('comments-clean.json')
 ca = FileLoader.load('comments-analysis.json')
@@ -16,10 +17,18 @@ ca = FileLoader.load('comments-analysis.json')
 # print("Comments analysis: " + str(len(ca)))
 # print("====================")
 
-# commentsDf = pd.json_normalize(ca)
-#
-# plotter = Plotter(commentsDf)
+''' Parse the data frames '''
+commentsDf = pd.json_normalize(ca)
+prsDf = pd.json_normalize(prs)
+prsMergedDf = pd.json_normalize(prsMerged)
+prsDf = pd.merge(prsDf, prsMergedDf, how='left', left_on=['repo_name', 'number'], right_on=['repo_name', 'number'])
+prsDf['is_merged'] = prsDf['merged_at'].isnull() == False
+
+plotter = Plotter(commentsDf, prsDf)
+
 #
 # plotter.negMeanByCommunity()
 # plotter.neuMeanByCommunity()
 # plotter.posMeanByCommunity()
+
+# plotter.totalNegVsMerged()

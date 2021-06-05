@@ -2,8 +2,15 @@ import matplotlib.pyplot as plt
 
 
 class Plotter:
-    def __init__(self, commentsDf):
+    def __init__(self, commentsDf, prsDf):
         self.commentsDf = commentsDf
+        self.prsDf = prsDf
+
+        commentsByPR = self.commentsDf.groupby(['repo_name', 'number'], as_index=False)['analysis.neg'].mean()
+        commentsByPR = commentsByPR.rename(columns={'analysis.neg': 'meanNeg'})
+        self.prsWithComments = self.prsDf.merge(commentsByPR, how='left', left_on=['repo_name', 'number'],
+                                           right_on=['repo_name', 'number'])
+
 
     def mean(self):
         print("MEAN:")
@@ -75,4 +82,16 @@ class Plotter:
         print(posMeanByCommunity.std())
 
         # don't close the plots when the script ends.
+        plt.show(block=True)
+
+    def totalNegVsMerged(self):
+        totalNegVsMerged = self.prsWithComments[['is_merged', 'meanNeg']].groupby('is_merged')['meanNeg'].mean()
+
+        print(totalNegVsMerged)
+        plot = totalNegVsMerged.plot(title="Total mean neg. compared to merge status", kind='bar')
+
+        for p in plot.patches:
+            plot.annotate(str(p.get_height()), xy=(p.get_x(), p.get_height()))
+
+        plot.set_ylabel('Mean neg. display of emotion')
         plt.show(block=True)
