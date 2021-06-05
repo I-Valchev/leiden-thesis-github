@@ -38,7 +38,7 @@ class Plotter:
         negMeanByCommunityPlot.set_xlabel('Repository')
         negMeanByCommunityPlot.set_ylabel('Mean neg. display of emotion')
 
-        print("NEU MEAN BY COMMUNITY:")
+        print("NEG MEAN BY COMMUNITY:")
         print("Variance:")
         print(negMeanByCommunity.var())
         print("Std. dev.")
