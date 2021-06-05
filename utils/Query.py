@@ -38,3 +38,13 @@ def getCommentsForRepo(repo, prs):
             AND number in (%s);
     """ % (repo, ','.join(prs))]
 
+
+def getMergedPRsFrOrg(org):
+    return [["repo_name", "number", "merged_at"], """
+        SELECT repo_name, number, merged_at
+        FROM github_events
+        WHERE LOWER(SUBSTRING(repo_name, 1, POSITION(repo_name, '/'))) IN ('%s') 
+            AND event_type = 'PullRequestEvent' 
+            AND merged_at > '2020-01-01 00:00:00' and merged_at < '2021-01-01 00:00:00';
+        """ % org]
+
