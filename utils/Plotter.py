@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
-
+import numpy as np
+import pandas as pd
 
 class Plotter:
     def __init__(self, commentsDf, prsDf):
@@ -55,6 +56,29 @@ class Plotter:
         # don't close the plots when the script ends.
         plt.show(block=True)
 
+        halfStdDev = negMeanByCommunity[
+            negMeanByCommunity > negMeanByCommunity.mean() + negMeanByCommunity.std() / 2
+        ]
+
+        oneStdDev = negMeanByCommunity[
+            negMeanByCommunity > negMeanByCommunity.mean() + negMeanByCommunity.std()
+        ]
+
+        twoStdDev = negMeanByCommunity[
+            negMeanByCommunity > negMeanByCommunity.mean() + negMeanByCommunity.std() * 2
+        ]
+
+        print("Half std. dev above: " + str(len(halfStdDev)))
+        print("One std. dev above: " + str(len(oneStdDev)))
+        print("Two std. dev above: " + str(len(twoStdDev)))
+
+        negMeanByCommunityHist = negMeanByCommunity.hist(bins=50, legend=True)
+        negMeanByCommunityHist.set_xlabel('Mean. neg. display of emotion')
+        negMeanByCommunityHist.set_ylabel('Number of repositories')
+
+        # don't close the plots when the script ends.
+        plt.show(block=True)
+
     def neuMeanByCommunity(self):
         neuMeanByCommunity = self.commentsDf.groupby('repo_name')['analysis.neu'].mean()
         neuMeanByCommunityPlot = neuMeanByCommunity.plot(title="Comments neu. mean by community")
@@ -71,7 +95,7 @@ class Plotter:
         plt.show(block=True)
 
     def posMeanByCommunity(self):
-        posMeanByCommunity = self.commentsDf.groupby('repo_name')['analysis.neu'].mean()
+        posMeanByCommunity = self.commentsDf.groupby('repo_name')['analysis.pos'].mean()
         posMeanByCommunityPlot = posMeanByCommunity.plot(title="Comments pos. mean by community")
         posMeanByCommunityPlot.set_xlabel('Repository')
         posMeanByCommunityPlot.set_ylabel('Mean pos. display of emotion')
@@ -102,8 +126,34 @@ class Plotter:
             self.prsWithComments['meanNeg'].notnull()
         ]
 
-        data['merge_time'] = data['merged_at'] - data['created_at']
+        data['merge_time'] = (data['merged_at'] - data['created_at']).dt.days
         data = data[['merge_time', 'meanNeg']]
+        data = data.sort_values('merge_time')
+
+        print("Mean merge time: " + str(data['merge_time'].mean()))
+
+        oneStdDev = data[
+            (data['meanNeg'] < data['meanNeg'].mean() + data['meanNeg'].std())
+            &
+            (data['meanNeg'] > data['meanNeg'].mean())
+        ]
+        print("Merge time within 1 std. dev: " + str(oneStdDev['merge_time'].mean()))
+
+        bins = pd.cut(data['meanNeg'], bins=10)
+        meanNegBarData = data.groupby(bins)['merge_time'].mean()
+        meanNegBar = meanNegBarData.plot.bar(title='Neg. emotional display impact on mean merge time')
+        meanNegBar.set_xlabel('Categorical neg. emotional display')
+        meanNegBar.set_ylabel('Mean merge time')
+        plt.show(block=True)
+
+        bins = pd.cut(data['merge_time'], bins=10)
+        meanMergetimeData = data.groupby(bins)['meanNeg'].mean()
+        meanMergeTimeBar = meanMergetimeData.plot.bar(title='Categorial merge time vs mean neg. emotional display')
+        meanMergeTimeBar.set_xlabel('Categorical merge time')
+        meanMergeTimeBar.set_ylabel('Mean neg. emotional display')
+        for p in meanMergeTimeBar.patches:
+            meanMergeTimeBar.annotate(str(round(p.get_height(), 2)), xy=(p.get_x(), p.get_height()))
+        plt.show(block=True)
 
         plot = data.plot(title='Total neg. vs merge time', x='merge_time', y='meanNeg', style='o')
         plt.show(block=True)
@@ -135,3 +185,4 @@ class Plotter:
 
         plot = data.plot.density(title='Mean neg. density for unmerged PRs')
         plt.show(block=True)
+

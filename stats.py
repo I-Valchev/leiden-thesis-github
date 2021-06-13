@@ -32,6 +32,11 @@ prsDf['merged_at'] = pd.to_datetime(prsDf['merged_at'])
 prsDf['is_merged'] = prsDf['merged_at'].isnull() == False
 ''' End parse '''
 
+'''Additional statistics'''
+print("====================")
+print("Projects: " + str(len(prsDf['repo_name'].unique())))
+print("====================")
+
 ''' Plot the stats '''
 plotter = Plotter(commentsDf, prsDf)
 
